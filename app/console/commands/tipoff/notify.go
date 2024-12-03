@@ -8,6 +8,7 @@ import (
 	"github.com/goravel/framework/contracts/console"
 	"github.com/goravel/framework/contracts/console/command"
 	"github.com/goravel/framework/facades"
+	"strings"
 	"time"
 )
 
@@ -38,7 +39,13 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 	}
 	for _, tipoff := range list {
 		time.Sleep(time.Second)
-		url := until.JoinDomain("http://new.xianbao.fun", tipoff.Url)
+
+		url := tipoff.Url
+
+		if !strings.HasPrefix(url, "http") {
+			url = until.JoinDomain("http://new.xianbao.fun", tipoff.Url)
+		}
+
 		isNotice := wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
 			AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
 			Content:     fmt.Sprintf("<h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a>", tipoff.Title, tipoff.Content, url),
