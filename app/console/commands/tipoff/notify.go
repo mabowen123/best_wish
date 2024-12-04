@@ -8,8 +8,11 @@ import (
 	"github.com/goravel/framework/contracts/console"
 	"github.com/goravel/framework/contracts/console/command"
 	"github.com/goravel/framework/facades"
+	"github.com/goravel/framework/support/str"
+	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type Notify struct {
@@ -30,6 +33,28 @@ func (receiver *Notify) Extend() command.Extend {
 	return command.Extend{}
 }
 
+func checkUrl(url string) (string, bool) {
+	if !strings.HasPrefix(url, "http") {
+		url = until.JoinDomain("http://new.xianbao.fun", url)
+	}
+
+	resp, err := http.Head(url)
+
+	if err != nil {
+		facades.Log().Infof("请求目标链接异常", url)
+		return url, false
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		facades.Log().Infof("请求目标链接404", url)
+		return url, false
+	}
+
+	return url, true
+}
+
 // Handle Execute the console command.
 func (receiver *Notify) Handle(ctx console.Context) error {
 	list, err := tipoffdao.GetNeedNoticeList()
@@ -37,38 +62,42 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 		facades.Log().Errorf("查询通知列表出错%s", err)
 		return err
 	}
+
+	noticeIds := []uint{}
+	var content strings.Builder
+	var summary strings.Builder
 	for _, tipoff := range list {
-		time.Sleep(time.Second)
+		url, isOk := checkUrl(tipoff.Url)
 
-		url := tipoff.Url
-
-		if !strings.HasPrefix(url, "http") {
-			url = until.JoinDomain("http://new.xianbao.fun", tipoff.Url)
+		if isOk {
+			content.WriteString(fmt.Sprintf("<div style='margin-bottom: 20px';><h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a></div>", tipoff.Title, tipoff.Content, url))
+			summary.WriteString(fmt.Sprintf("%s;", str.Of(until.ReplaceAllCharAndEmojiToBlank(tipoff.Title, []string{"!", "@", "#", "$", "%", " ", "|", "｜", ",", "，"})).Substr(0, 10)))
+			noticeIds = append(noticeIds, tipoff.ID)
 		}
 
-		now := time.Now()
-		nowHour := now.Hour()
-		nowWeekday := now.Weekday()
-
-		isNotice := true
-
-		if (nowHour < 2 || nowHour > 6) || (nowWeekday == time.Saturday || nowWeekday == time.Sunday) {
-			isNotice = wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
-				AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
-				Content:     fmt.Sprintf("<h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a>", tipoff.Title, tipoff.Content, url),
-				Summary:     tipoff.Title,
-				ContentType: 2,
-				TopicIds: []int{
-					25804,
-				},
-				Url:       url,
-				VerifyPay: 0,
-			})
+		if utf8.RuneCountInString(summary.String()) < 20 {
+			continue
 		}
+
+		isNotice := wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
+			AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
+			Content:     content.String(),
+			ContentType: 2,
+			Summary:     summary.String(),
+			TopicIds: []int{
+				25804,
+			},
+			VerifyPay: 0,
+		})
 
 		if isNotice {
-			tipoffdao.UpdateIsNotice(tipoff.ID)
+			tipoffdao.UpdateIsNotice(noticeIds)
+			time.Sleep(time.Second)
 		}
+
+		noticeIds = []uint{}
+		content.Reset()
+		summary.Reset()
 	}
 
 	return nil

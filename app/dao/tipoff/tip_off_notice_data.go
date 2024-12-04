@@ -23,10 +23,10 @@ func GetNeedNoticeList() ([]tipoffmodel.TipOffNoticeData, error) {
 	return needNoticeListList, err
 }
 
-func UpdateIsNotice(id uint) {
+func UpdateIsNotice(ids []uint) {
 	facades.Orm().Query().Model(&tipoffmodel.TipOffNoticeData{}).
 		Where("is_notice  = ?", tipoffmodel.IsNoticeTypeNo).
-		Where("id = ?", id).
+		Where("id IN ?", ids).
 		Update("is_notice", tipoffmodel.IsNoticeTypeYes)
 }
 func DelOldData() {

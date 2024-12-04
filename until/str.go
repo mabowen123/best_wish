@@ -2,6 +2,7 @@ package until
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -40,4 +41,13 @@ func ToBeInt64(data interface{}) int64 {
 		return v
 	}
 	return 0
+}
+
+func ReplaceAllCharAndEmojiToBlank(s string, specialChars []string) string {
+	for _, char := range specialChars {
+		s = strings.ReplaceAll(s, char, "")
+	}
+	reg, _ := regexp.Compile("[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]+")
+	s = reg.ReplaceAllString(s, "")
+	return s
 }
