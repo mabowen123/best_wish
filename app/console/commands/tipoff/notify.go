@@ -79,16 +79,21 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 			continue
 		}
 
-		isNotice := wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
-			AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
-			Content:     content.String(),
-			ContentType: 2,
-			Summary:     summary.String(),
-			TopicIds: []int{
-				25804,
-			},
-			VerifyPay: 0,
-		})
+		hour := time.Now().Hour()
+		isNotice := true
+
+		if hour < 2 || hour > 6 {
+			isNotice = wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
+				AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
+				Content:     content.String(),
+				ContentType: 2,
+				Summary:     summary.String(),
+				TopicIds: []int{
+					25804,
+				},
+				VerifyPay: 0,
+			})
+		}
 
 		if isNotice {
 			tipoffdao.UpdateIsNotice(noticeIds)
