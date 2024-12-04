@@ -46,17 +46,26 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 			url = until.JoinDomain("http://new.xianbao.fun", tipoff.Url)
 		}
 
-		isNotice := wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
-			AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
-			Content:     fmt.Sprintf("<h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a>", tipoff.Title, tipoff.Content, url),
-			Summary:     tipoff.Title,
-			ContentType: 2,
-			TopicIds: []int{
-				25804,
-			},
-			Url:       url,
-			VerifyPay: false,
-		})
+		now := time.Now()
+		nowHour := now.Hour()
+		nowWeekday := now.Weekday()
+
+		isNotice := true
+
+		if (nowHour < 2 || nowHour > 6) || (nowWeekday == time.Saturday || nowWeekday == time.Sunday) {
+			isNotice = wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
+				AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
+				Content:     fmt.Sprintf("<h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a>", tipoff.Title, tipoff.Content, url),
+				Summary:     tipoff.Title,
+				ContentType: 2,
+				TopicIds: []int{
+					25804,
+				},
+				Url:       url,
+				VerifyPay: 0,
+			})
+		}
+
 		if isNotice {
 			tipoffdao.UpdateIsNotice(tipoff.ID)
 		}

@@ -15,7 +15,7 @@ type SendTongzhiParams struct {
 	ContentType int    `json:"contentType"`
 	TopicIds    []int  `json:"topicIds"`
 	Url         string `json:"url"`
-	VerifyPay   bool   `json:"verifyPay"`
+	VerifyPay   int    `json:"verifyPayType"`
 }
 
 type TongzhiResp struct {
