@@ -17,7 +17,7 @@ func GetNeedNoticeList() ([]tipoffmodel.TipOffNoticeData, error) {
 		Select("id,url,title,content").
 		Where("is_notice = ?", tipoffmodel.IsNoticeTypeNo).
 		OrderByDesc("id").
-		Where("created_at >= ?", carbon.Now().SubDay().ToDateTimeMicroString()).
+		Where("created_at >= ?", carbon.Now().SubHours(3).ToDateTimeMicroString()).
 		Get(&needNoticeListList)
 
 	return needNoticeListList, err
