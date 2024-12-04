@@ -23,6 +23,20 @@ type TongzhiResp struct {
 }
 
 func SendMsg(p *SendTongzhiParams) bool {
+	resp, err := http.Get(p.Url)
+
+	if err != nil {
+		facades.Log().Infof("请求目标链接异常", p.Url)
+		return true
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		facades.Log().Infof("请求目标链接404", p.Url)
+		return true
+	}
+
 	client := &http.Client{}
 	jsonValue, _ := json.Marshal(p)
 	requestBody := bytes.NewBuffer(jsonValue)
