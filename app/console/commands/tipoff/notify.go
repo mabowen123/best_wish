@@ -71,13 +71,15 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 
 		if isOk {
 			content.WriteString(fmt.Sprintf("<div style='margin-bottom: 20px';><h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a></div>", tipoff.Title, tipoff.Content, url))
-			summary.WriteString(fmt.Sprintf("%s;", str.Of(until.ReplaceAllCharAndEmojiToBlank(tipoff.Title, []string{"!", "@", "#", "$", "%", " ", "|", "｜", ",", "，"})).Substr(0, 10)))
+			summary.WriteString(fmt.Sprintf("%s;", str.Of(until.ReplaceAllCharAndEmojiToBlank(tipoff.Title, []string{"!", "@", "#", "$", "%", " ", "|", "｜", ",", "，", "/", "~"})).Substr(0, 10)))
 			noticeIds = append(noticeIds, tipoff.ID)
 		}
 
-		if utf8.RuneCountInString(summary.String()) < 20 {
+		if utf8.RuneCountInString(summary.String()) < 18 {
 			continue
 		}
+
+		summary.WriteString(str.Of(summary.String()).ReplaceLast(";", "").String())
 
 		hour := time.Now().Hour()
 		isNotice := true
