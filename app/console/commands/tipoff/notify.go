@@ -71,7 +71,7 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 
 		if isOk {
 			content.WriteString(fmt.Sprintf("<div style='margin-bottom: 20px';><h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a></div>", tipoff.Title, tipoff.Content, url))
-			summary.WriteString(fmt.Sprintf("%s;", str.Of(until.ReplaceAllCharAndEmojiToBlank(tipoff.Title, []string{"!", "@", "#", "$", "%", " ", "|", "｜", ",", "，", "/", "~"})).Substr(0, 20)))
+			summary.WriteString(fmt.Sprintf("%s;", str.Of(until.ReplaceAllCharAndEmojiToBlank(tipoff.Title, []string{"!", "@", "#", "$", "%", " ", "|", "｜", ",", "，", "/", "~"})).Substr(0, 19)))
 			noticeIds = append(noticeIds, tipoff.ID)
 		}
 
