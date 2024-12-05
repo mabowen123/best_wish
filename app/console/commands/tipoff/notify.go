@@ -79,8 +79,6 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 			continue
 		}
 
-		summary.WriteString(str.Of(summary.String()).ReplaceLast(";", "").String())
-
 		hour := time.Now().Hour()
 		isNotice := true
 
@@ -89,7 +87,7 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 				AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
 				Content:     content.String(),
 				ContentType: 2,
-				Summary:     summary.String(),
+				Summary:     str.Of(summary.String()).ReplaceLast(";", "").String(),
 				TopicIds: []int{
 					25804,
 				},
