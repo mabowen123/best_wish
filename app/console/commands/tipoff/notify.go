@@ -80,6 +80,7 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 		}
 
 		hour := time.Now().Hour()
+		content.WriteString(fmt.Sprintf("<img src=\"https://cdn.weipaitang.com/sky/yzlzs/imagecb/image/20250212/24ac16e1218c48bc8fd859ebaca8275a-W750H1350\" alt=\"加载失败\" width=\"600px\">"))
 		isNotice := true
 		if hour < 2 || hour > 6 {
 			isNotice = wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
