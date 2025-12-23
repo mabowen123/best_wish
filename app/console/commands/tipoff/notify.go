@@ -8,11 +8,9 @@ import (
 	"github.com/goravel/framework/contracts/console"
 	"github.com/goravel/framework/contracts/console/command"
 	"github.com/goravel/framework/facades"
-	"github.com/goravel/framework/support/str"
 	"net/http"
 	"strings"
 	"time"
-	"unicode/utf8"
 )
 
 type Notify struct {
@@ -63,46 +61,30 @@ func (receiver *Notify) Handle(ctx console.Context) error {
 		return err
 	}
 
-	noticeIds := []uint{}
-	var content strings.Builder
-	var summary strings.Builder
 	for _, tipoff := range list {
 		url, isOk := checkUrl(tipoff.Url)
-
-		if isOk {
-			content.WriteString(fmt.Sprintf("<div style='margin-bottom: 20px';><h1>%s</h1>\n\t<p>%s</p>\n   <a href=\"%s\">🔗查看详情</a></div>", tipoff.Title, tipoff.Content, url))
-			summary.WriteString(fmt.Sprintf("%s;", str.Of(until.ReplaceAllCharAndEmojiToBlank(tipoff.Title, []string{"!", "@", "#", "$", "%", " ", "|", "｜", ",", "，", "/", "~"})).Substr(0, 19)))
-			noticeIds = append(noticeIds, tipoff.ID)
-		}
-
-		if utf8.RuneCountInString(summary.String()) < 40 {
+		if !isOk {
 			continue
 		}
 
 		hour := time.Now().Hour()
-		content.WriteString(fmt.Sprintf("<img src=\"https://cdn.weipaitang.com/sky/yzlzs/imagecb/image/20250218/d30f4ef2ef804352a21b9ed367e534eb-W750H1350\" alt=\"加载失败\" width=\"600px\">"))
-		isNotice := true
-		if hour < 2 || hour > 6 {
-			isNotice = wxpusher.SendMsg(&wxpusher.SendTongzhiParams{
-				AppToken:    "AT_AAixJoECoUTJMyoN0ELrATDYHHu34qLy",
-				Content:     content.String(),
-				ContentType: 2,
-				Summary:     str.Of(summary.String()).ReplaceLast(";", "").String(),
-				TopicIds: []int{
-					25804,
-				},
-				VerifyPay: 0,
-			})
+		if hour >= 2 && hour <= 6 {
+			// 凌晨2点到6点之间不发送
+			continue
 		}
+
+		// 使用 Markdown 格式构建消息内容
+		content := fmt.Sprintf("### %s\n%s\n[🔗查看详情](%s)", tipoff.Title, tipoff.Content, url)
+
+		// 发送到企业微信
+		isNotice := wxpusher.SendWorkWechat(content)
 
 		if isNotice {
-			tipoffdao.UpdateIsNotice(noticeIds)
+			// 更新单条记录为已通知
+			tipoffdao.UpdateIsNotice([]uint{tipoff.ID})
+			// 每条消息之间间隔1秒，避免频率限制
 			time.Sleep(time.Second)
 		}
-
-		noticeIds = []uint{}
-		content.Reset()
-		summary.Reset()
 	}
 
 	return nil
