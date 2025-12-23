@@ -14,7 +14,7 @@ func FirstOrCreateByOrigId(data tipoffmodel.TipOffNoticeData) {
 func GetNeedNoticeList() ([]tipoffmodel.TipOffNoticeData, error) {
 	var needNoticeListList []tipoffmodel.TipOffNoticeData
 	err := facades.Orm().Query().
-		Select("id,url,title,content").
+		Select("id,url,title,content,shi_jian_chuo,created_at").
 		Where("is_notice = ?", tipoffmodel.IsNoticeTypeNo).
 		OrderByDesc("id").
 		Where("created_at >= ?", carbon.Now().SubHours(3).ToDateTimeMicroString()).
